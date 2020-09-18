@@ -1,0 +1,18 @@
+{
+    "name": "SPAssistantBot",
+    "description": "",
+    "services": [
+      {
+        "type": "endpoint",
+        "appId": "",
+        "appPassword": "",
+        "endpoint": "http://localhost:3978/api/messages",
+        "id": "e998e5fe-5968-42c1-b5bc-8af93633d3d3",
+        "name": "http://localhost:3978/api/messages"
+      }
+    ],
+    "padlock": "",
+    "version": "2.0",
+    "overrides": null,
+    "path": "C:\\Users\\rajendrab\\Documents\\Projects\\SPAssistantBot\\SPAssistantBot\\SPAssistantBot.bot"
+}
