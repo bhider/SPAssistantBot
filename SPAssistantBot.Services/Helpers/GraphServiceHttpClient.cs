@@ -4,6 +4,7 @@ using Microsoft.Identity.Client;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,25 +13,30 @@ namespace SPAssistantBot.Services.Helpers
 {
     public class GraphServiceHttpClient : IDisposable
     {
-        private readonly IConfiguration _configuration;
+        //private readonly IConfiguration _configuration;
         
-        private HttpClient httpClient;
+        private static HttpClient httpClient;
 
         private bool disposedValue;
+
+       
         public GraphServiceHttpClient(IConfiguration configuration, ILogger log)
         {
-            _configuration = configuration;
+            //_configuration = configuration;
+            Init(configuration);
             Log = log;
         }
 
-        public async Task Init()
+
+
+        private static void  Init(IConfiguration configuration)
         {
-            var aadApplicationId = _configuration["AADClientId"];
-            var aadApplicationSecret = _configuration["AADClientSecret"];
-            var spTenant = _configuration["Tenant"];
-            var accessToken = await GetAccessToken(aadApplicationId, aadApplicationSecret, spTenant);
-            
-            httpClient = new HttpClient(new OAuthMessageHandler(accessToken, new HttpClientHandler()));
+            var aadApplicationId = configuration["AADClientId"];
+            var aadApplicationSecret = configuration["AADClientSecret"];
+            var spTenant = configuration["Tenant"];
+            //var accessToken = await GetAccessToken(aadApplicationId, aadApplicationSecret, spTenant);
+
+            httpClient = new HttpClient(new OAuthMessageHandler(aadApplicationId, aadApplicationSecret, spTenant, new HttpClientHandler()));
             
             
             //KVServiceCertIdentifier = configuration["KeyVaultSecretIdentifier"];
@@ -48,7 +54,7 @@ namespace SPAssistantBot.Services.Helpers
             return accessToken;
         }
 
-        public async Task<JObject> ExecuteGet(string url)
+        public async Task<JObject> ExecuteGetAsync(string url)
         {
             JObject body = null;
 
@@ -86,6 +92,79 @@ namespace SPAssistantBot.Services.Helpers
                 {
                     body = JObject.Parse(result);
                 }
+            }
+            else
+            {
+                throw new Exception(response.ReasonPhrase);
+            }
+
+            return body;
+        }
+
+        public async Task<JObject> ExecutePatchAsync(string url, JObject content)
+        {
+            JObject body = null;
+
+            var response = await httpClient.PatchAsync(url, new StringContent(content.ToString(), Encoding.UTF8, "application/json"));
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadAsStringAsync();
+
+                if (!string.IsNullOrWhiteSpace(result))
+                {
+                    body = JObject.Parse(result);
+                }
+            }
+            else
+            {
+                throw new Exception(response.ReasonPhrase);
+            }
+
+            return body;
+        }
+
+        public async Task<bool> ExecuteDeleteAsync(string url)
+        {
+            var response = await httpClient.DeleteAsync(url);
+
+            if (response.IsSuccessStatusCode && response.StatusCode == HttpStatusCode.NoContent)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public async Task<JObject> ExecuteLongPollingPostAsync(string url, JObject content)
+        {
+            JObject body = null;
+
+            var response = await httpClient.PostAsync(url, new StringContent(content.ToString(), Encoding.UTF8, "application/json"));
+
+            if (response.IsSuccessStatusCode)
+            {
+                if (response.StatusCode == System.Net.HttpStatusCode.Accepted)
+                {
+                    var location = response.Headers.Location;
+                    var monitorUrl = $"https://graph.microsoft.com/v1.0{location}";
+                    var statusCode = HttpStatusCode.NotFound;
+                    HttpResponseMessage opResponse = null;
+                    while (statusCode != HttpStatusCode.OK)
+                    {
+                        opResponse = await httpClient.GetAsync(monitorUrl);
+                        statusCode = opResponse.StatusCode;
+                        
+                    }
+
+                    var result = await opResponse.Content.ReadAsStringAsync();
+
+                    if (!string.IsNullOrWhiteSpace(result))
+                    {
+                        body = JObject.Parse(result);
+                    }
+                }
+                
             }
             else
             {

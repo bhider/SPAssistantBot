@@ -37,7 +37,7 @@ namespace SPAssistantBot.Functions
                 {
                     if (data.UseTemplate)
                     {
-                        _teamsService.CloneTeam("92568ef0 - 8a32 - 4029 - a847 - c0c1add8103d", data.TeamName, data.Description, data.TeamType, data.OwnersUserEmailListAsString, data.MembersUserEmailListAsString);
+                        await _teamsService.CloneTeam("92568ef0 - 8a32 - 4029 - a847 - c0c1add8103d", data.TeamName, data.Description, data.TeamType, data.OwnersUserEmailListAsString, data.MembersUserEmailListAsString);
                     }
                     else
                     {

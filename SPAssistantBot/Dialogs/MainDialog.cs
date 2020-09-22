@@ -36,6 +36,7 @@ namespace SPAssistantBot.Dialogs
             };
 
             AddDialog(new GreetingDialog($"{nameof(MainDialog)}.greeting", _stateService));
+            AddDialog(new DeleteTeamDialog($"{nameof(MainDialog)}.deleteMSTeam", _teamsServices, _configuration));
             AddDialog(new SPAssistantDialog($"{nameof(MainDialog)}.createspsite", _spServices, _configuration));
             AddDialog(new TeamsAssistantDialog($"{nameof(MainDialog)}.createMSTeam",  _teamsServices, _configuration));
             AddDialog(new WaterfallDialog($"{nameof(MainDialog)}.mainflow", waterfallSteps));
@@ -58,6 +59,8 @@ namespace SPAssistantBot.Dialogs
                     return await stepContext.BeginDialogAsync($"{nameof(MainDialog)}.createspsite", null, cancellationToken);
                 case "CreateTeamIntent":
                     return await stepContext.BeginDialogAsync($"{nameof(MainDialog)}.createMSTeam", null, cancellationToken);
+                case "DeleteTeamIntent":
+                    return await stepContext.BeginDialogAsync($"{nameof(MainDialog)}.deleteMSTeam", null, cancellationToken);
                 default:
                     await stepContext.Context.SendActivityAsync(MessageFactory.Text("I am sorry, I don't know what you mean."), cancellationToken);
                     break;
