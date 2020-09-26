@@ -3,6 +3,7 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Builder.Dialogs.Choices;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SPAssistantBot.Services;
 using System.Collections.Generic;
 using System.IO;
@@ -150,7 +151,39 @@ namespace SPAssistantBot.Dialogs
                 
                 var responseMessage = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
                     .ConfigureAwait(false);
-                newTeam = await responseMessage.Content.ReadAsStringAsync();
+                if (responseMessage.IsSuccessStatusCode && responseMessage.StatusCode == System.Net.HttpStatusCode.Accepted)
+                {
+                    var statusCheckUri = responseMessage.Headers.Location;
+
+                    var count = 50;
+                    var queryResponse = await client.GetAsync(statusCheckUri);
+                    var queryResult = await queryResponse.Content.ReadAsStringAsync();
+                    var result = JObject.Parse(queryResult);
+                    var status = result.Value<string>("runtimeStatus");
+                    var isComplete = status == "Completed" || status == "Failed";
+                    while (count > 0 && !isComplete)
+                    {
+                        await Task.Delay(10000);
+                        count--;
+                        queryResponse = await client.GetAsync(statusCheckUri);
+                        queryResult = await queryResponse.Content.ReadAsStringAsync();
+                        result = JObject.Parse(queryResult);
+                        status = result.Value<string>("runtimeStatus");
+                        isComplete = status == "Completed" || status == "Failed";// result.Value<string>("runtimeStatus") == "Completed";
+                    }
+                    if ((isComplete) && (status == "Completed"))
+                    {
+                        newTeam = result.Value<string>("output");
+                    }
+                    else
+                    {
+                        newTeam = "Failed";
+                    }
+                }
+                else
+                {
+                    newTeam = await responseMessage.Content.ReadAsStringAsync();
+                }
             }
 
             return newTeam;

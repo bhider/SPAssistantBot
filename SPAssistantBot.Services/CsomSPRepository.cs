@@ -122,9 +122,9 @@ namespace SPAssistantBot.Services
             try
             {
                 GraphServiceClient graphClient = GetGraphServiceClient();
-                var httpRequestMsg = graphClient.Groups[groupId].Sites["root"].Request().GetHttpRequestMessage();
-                var site = await graphClient.Groups[groupId].Sites["root"].Request().GetAsync();
-                
+                //var httpRequestMsg = graphClient.Groups[groupId].Sites["root"].Request().GetHttpRequestMessage();
+                //var site = await graphClient.Groups[groupId].Sites["root"].Request().GetAsync();
+                var site = await GetGroupTeamSiteWithRetry(graphClient, groupId);
                 return site;
             }
             catch (Exception ex)
@@ -132,6 +132,31 @@ namespace SPAssistantBot.Services
                 var message = ex.Message;
                 throw;
             }
+        }
+
+        private async Task<Site> GetGroupTeamSiteWithRetry(GraphServiceClient graphClient, string groupId,  int retryInterval = 3, int maxTries = 5)
+        {
+            Site site = null;
+
+            int count = maxTries;
+            while(site == null && count > 0)
+            {
+                try
+                {
+                    var httpRequestMsg = graphClient.Groups[groupId].Sites["root"].Request().GetHttpRequestMessage();
+                    site = await graphClient.Groups[groupId].Sites["root"].Request().GetAsync();
+                }
+                catch(Exception ex)
+                {
+                    if (count > 1)
+                    {
+                        await Task.Delay(new TimeSpan(0,0,retryInterval));
+                    }
+                }
+                count--;
+            }
+
+            return site;
         }
 
 

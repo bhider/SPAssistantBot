@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using SPAssistantBot.Services;
+using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 
 namespace SPAssistantBot.Functions
 {
@@ -23,24 +24,28 @@ namespace SPAssistantBot.Functions
 
         [FunctionName("DeleteTeam")]
         public  async Task<IActionResult> Run(
-            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req,
-            ILogger log)
+            [HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)] HttpRequest req, 
+            [DurableClient]IDurableOrchestrationClient starter,
+            ILogger log, ExecutionContext ex)
         {
             log.LogInformation("C# HTTP trigger function processed a request.");
 
             string teamsList = req.Query["teamsList"];
 
-            var deletedTeams = await _teamsService.DeleteTeamsAsync(teamsList);
+            var instanceId = await starter.StartNewAsync<string>("O_DeleteTeams", teamsList);
 
-            //string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            //dynamic data = JsonConvert.DeserializeObject(requestBody);
-            //name = name ?? data?.name;
+            return starter.CreateCheckStatusResponse(req, instanceId);//;WaitForCompletionOrCreateCheckStatusResponseAsync(req, instanceId);
+            //var deletedTeams = await _teamsService.DeleteTeamsAsync(teamsList);
 
-            string responseMessage = !string.IsNullOrEmpty(deletedTeams)
-                ? $"The following teams were deleted successfully: {deletedTeams}"
-                : $"No teams were deleted successfully";
+            ////string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
+            ////dynamic data = JsonConvert.DeserializeObject(requestBody);
+            ////name = name ?? data?.name;
 
-            return new OkObjectResult(responseMessage);
+            //string responseMessage = !string.IsNullOrEmpty(deletedTeams)
+            //    ? $"The following teams were deleted successfully: {deletedTeams}"
+            //    : $"No teams were deleted successfully";
+
+            //return new OkObjectResult(responseMessage);
         }
     }
 }

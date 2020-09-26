@@ -166,7 +166,7 @@ namespace SPAssistantBot.Services
                     if (!string.IsNullOrWhiteSpace(newTeamId))
                     {
                         //Iterate through all the channels and delete the wiki tab
-                        await ConfigureChannelTabs(templateTeamId, newTeamId);
+                        await ConfigureChannelTabs(templateTeamId, newTeamId, teamName);
                     }
                 }
                 //var awaiter = graphClient.Teams[templateTeamId]
@@ -189,7 +189,7 @@ namespace SPAssistantBot.Services
             return newTeamId;
         }
 
-        private async Task ConfigureChannelTabs(string templateTeamId, string teamId)
+        private async Task ConfigureChannelTabs(string templateTeamId, string teamId, string teamName)
         {
             if (!string.IsNullOrWhiteSpace(templateTeamId) && !string.IsNullOrWhiteSpace(teamId))
             {
@@ -215,25 +215,25 @@ namespace SPAssistantBot.Services
 
                             if (newTeamTab != null)
                             {
-                                if (newTeamTab.TeamsApp.Id == TeamsAppId.OneNote)
+                                if (newTeamTab.TeamsAppId == TeamsAppId.OneNote)
                                 {
-                                    Notebook notebook;
+                                    Notebook notebook = null;
                                     if (await IsDefaultNoteBook(templateTeamId, templateTab.DisplayName))
                                     {
-                                        notebook = await GetDefaultNotebook(teamId);
-                                    }
-                                    else
-                                    {
-                                        notebook = await CreateNotebook(teamId, WebUtility.UrlEncode(newTeamTab.DisplayName));
+                                    //    notebook = await GetDefaultNotebook(teamId);
+                                    //}
+                                    //else
+                                    //{
+                                        notebook = await CreateNotebook(teamId, WebUtility.UrlEncode($"{teamName} Notebook"));
                                     }
 
                                     if (notebook != null)
                                     {
                                         var body = ConfigureOneNoteTab(teamId, notebook);
-                                        if (!string.IsNullOrWhiteSpace(body))
-                                        {
+                                        //if (!string.IsNullOrWhiteSpace(body))
+                                        //{
                                             var result = await UpdateTeamChannelTab(teamId, newTeamChannel.Id, newTeamTab.Id, body);
-                                        }
+                                        //}
                                     }
                                 }
                             }
@@ -248,34 +248,52 @@ namespace SPAssistantBot.Services
            
         }
 
-        public async Task<JObject> UpdateTeamChannelTab(string teamId, string channelId, string tabId, string body)
+        public async Task<JObject> UpdateTeamChannelTab(string teamId, string channelId, string tabId, dynamic body)
         {
             var resourceUrl = $"{GraphAPIBaseUrl}v1.0/teams/{teamId}/channels/{channelId}/tabs/{tabId}";
             return await _graphServiceHttpClient.ExecutePatchAsync(resourceUrl, JObject.FromObject(body));
         }
 
-        private string ConfigureOneNoteTab(string teamId, Notebook notebook)
+        private dynamic ConfigureOneNoteTab(string teamId, Notebook notebook)
         {
             var siteUrl = string.Join("/", notebook.Links.OneNoteWebUrl.Href.Split('/').Take(5));
-            return $"{{ 'displayName': '{notebook.DisplayName}', 'configuration': {{ 'contentUrl': 'https://www.onenote.com/teams/TabContent?entityid=%7BentityId%7D&subentityid=%7BsubEntityId%7D&auth_upn=%7Bupn%7D&notebookSource=Pick&notebookSelfUrl=https%3A%2F%2Fwww.onenote.com%2Fapi%2Fv1.0%2FmyOrganization%2Fgroups%2F{teamId}%2Fnotes%2Fnotebooks%2F{notebook.Id}&oneNoteWebUrl={notebook.Links.OneNoteWebUrl.Href}&notebookName={notebook.DisplayName}&siteUrl={siteUrl}&ui={{locale}}&tenantId={{tid}}' }} }}";
+            //return $"{{ 'displayName': '{notebook.DisplayName}', 'configuration': {{ 'contentUrl': 'https://www.onenote.com/teams/TabContent?entityid=%7BentityId%7D&subentityid=%7BsubEntityId%7D&auth_upn=%7Bupn%7D&notebookSource=Pick&notebookSelfUrl=https%3A%2F%2Fwww.onenote.com%2Fapi%2Fv1.0%2FmyOrganization%2Fgroups%2F{teamId}%2Fnotes%2Fnotebooks%2F{notebook.Id}&oneNoteWebUrl={notebook.Links.OneNoteWebUrl.Href}&notebookName={notebook.DisplayName}&siteUrl={siteUrl}&ui={{locale}}&tenantId={{tid}}' }} }}";
+            return new
+            {
+                displayName = notebook.DisplayName,
+                configuration = new
+                {
+                    contentUrl = $"https://www.onenote.com/teams/TabContent?entityid=%7BentityId%7D&subentityid=%7BsubEntityId%7D&auth_upn=%7Bupn%7D&notebookSource=Pick&notebookSelfUrl=https%3A%2F%2Fwww.onenote.com%2Fapi%2Fv1.0%2FmyOrganization%2Fgroups%2F{teamId}%2Fnotes%2Fnotebooks%2F{notebook.Id}&oneNoteWebUrl={notebook.Links.OneNoteWebUrl.Href}&notebookName={notebook.DisplayName}&siteUrl={siteUrl}&ui={{locale}}&tenantId={{tid}}"
+                }
+            };
         }
 
         private async Task<Notebook> CreateNotebook(string teamId, string displayName)
         {
             var resourceUrl = $"{GraphAPIBaseUrl}v1.0/groups/{teamId}/onenote/notebooks";
-            var body = $"{{ 'displayName': '{displayName}' }}";
+            try
+            {
+                var body = new  { displayName =displayName };
 
-            var response = await _graphServiceHttpClient.ExecutePostAsync(resourceUrl, JObject.FromObject(body));
+                var response = await _graphServiceHttpClient.ExecutePostAsync(resourceUrl, JObject.FromObject(body));
 
-            var notebook = JsonConvert.DeserializeObject<Notebook>(response.ToString());
+                var notebook = JsonConvert.DeserializeObject<Notebook>(response.ToString());
+                return notebook;
+            }
+            catch (Exception ex)
+            {
+                var message = ex.Message;
+                throw;
+            }
 
-            return notebook;
+            
         }
 
         private async Task<Notebook> GetDefaultNotebook(string teamId)
         {
-            var resourceUrl = $"{GraphAPIBaseUrl}/v1.0/groups/{teamId}/onenote/notebooks?$orderby=createdDateTime";
-            var result = await _graphServiceHttpClient.ExecuteGetAsync(resourceUrl);
+            var resourceUrl = $"{GraphAPIBaseUrl}v1.0/groups/{teamId}/onenote/notebooks?$orderby=createdDateTime";
+            //var tempHttpClient = new GraphServiceHttpClient2(Configuration, Log);
+            var result =  await _graphServiceHttpClient.ExecuteGetAsync(resourceUrl);// await tempHttpClient.ExecuteGetAsync(resourceUrl);
 
             if (result != null)
             {
@@ -321,7 +339,7 @@ namespace SPAssistantBot.Services
             return null;
         }
 
-        private async Task<TeamsTab> GetTeamsChannelTabByAppIdAndName(string teamId, string channelId, string teamsAppId, string displayName)
+        private async Task<TeamsTabExtended> GetTeamsChannelTabByAppIdAndName(string teamId, string channelId, string teamsAppId, string displayName)
         {
             var resourceUrl = $"{GraphAPIBaseUrl}beta/teams/{teamId}/channels/{channelId}/tabs?$filter=teamsAppId eq '{teamsAppId}' and displayName eq '{WebUtility.UrlEncode(displayName)}'";
 
@@ -329,10 +347,18 @@ namespace SPAssistantBot.Services
 
             if (result != null)
             {
-                var valueToken = result.FindTokens("value");
+                var valueToken = result.FindTokens("value").FirstOrDefault();
                 if (valueToken != null)
                 {
-                    var teamsTab = JsonConvert.DeserializeObject<List<TeamsTab>>(valueToken.ToString());
+                    List<TeamsTabExtended> teamsTab = new List<TeamsTabExtended>();
+                    try
+                    {
+                        teamsTab = JsonConvert.DeserializeObject<List<TeamsTabExtended>>(valueToken.ToString());
+                    }
+                    catch(Exception ex)
+                    {
+                        var message = ex.Message;
+                    }
 
                     if (teamsTab.Count > 0)
                     {

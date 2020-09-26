@@ -35,10 +35,18 @@ namespace SPAssistantBot.Services.Helpers
 
         private async Task<string> GetAccessToken()
         {
-            var clientApp = ConfidentialClientApplicationBuilder.Create(_applicationId).WithClientSecret(_applicationSecret).WithTenantId(_tenant).Build();
-            var authResult = await clientApp.AcquireTokenForClient(new string[] { "https://graph.microsoft.com/.default" }).ExecuteAsync();
-            var accessToken = authResult.AccessToken;
-            return accessToken;
+            try
+            {
+                var clientApp = ConfidentialClientApplicationBuilder.Create(_applicationId).WithClientSecret(_applicationSecret).WithTenantId(_tenant).Build();
+                var authResult = await clientApp.AcquireTokenForClient(new string[] { "https://graph.microsoft.com/.default" }).ExecuteAsync();
+                var accessToken = authResult.AccessToken;
+                return accessToken;
+            }
+            catch(Exception ex)
+            {
+                var message = ex.Message;
+                throw ex;
+            }
         }
     }
 }

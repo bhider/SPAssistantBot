@@ -1,6 +1,8 @@
 ﻿using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+using SPAssistantBot.Helpers;
 using SPAssistantBot.Services;
 using System;
 using System.Collections.Generic;
@@ -55,7 +57,16 @@ namespace SPAssistantBot.Dialogs
             {
                 var responseMessage = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
                                                                           .ConfigureAwait(false);
-                response = await responseMessage.Content.ReadAsStringAsync();
+                if (responseMessage.IsSuccessStatusCode && responseMessage.StatusCode == System.Net.HttpStatusCode.Accepted)
+                {
+                    var statusCheckUri = responseMessage.Headers.Location;
+                    response = await PollingHelper.ExecuteLongPollingOperation<string>(client, statusCheckUri);
+                    //var t = JsonConvert.DeserializeObject<dynamic>(result.ToString());
+                }
+                else
+                {
+                    response = responseMessage.ReasonPhrase;
+                }
             }
 
             return response;

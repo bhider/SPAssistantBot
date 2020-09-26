@@ -17,6 +17,8 @@ namespace SPAssistantBot.Services.Helpers
         
         private static HttpClient httpClient;
 
+         
+
         private bool disposedValue;
 
        
