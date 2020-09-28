@@ -36,7 +36,7 @@ namespace SPAssistantBot.Functions
             {
                 try
                 {
-                    var teamSiteUrl = _spService.CreateSite(data.SiteTitle, data.Description, data.SiteType, data.OwnersUserEmailListAsString, data.MembersUserEmailListAsString);
+                    var teamSiteUrl = _spService.CreateSite(data.SiteTitle, data.Description, data.OwnersUserEmailListAsString, data.MembersUserEmailListAsString);
                     string responseMessage = teamSiteUrl;
                     return new OkObjectResult(responseMessage);
                 }

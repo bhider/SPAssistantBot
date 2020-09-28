@@ -9,6 +9,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SPAssistantBot.Services", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SPAssistantBot.Functions", "SPAssistantBot.Functions\SPAssistantBot.Functions.csproj", "{834A99A3-093D-492F-8BDE-9EF82CCB1F4D}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SPAssistant.SPServices.Functions", "SPAssistant.SPServices.Functions\SPAssistant.SPServices.Functions.csproj", "{8CD53476-4A0B-4807-9EFE-4D35078BC1CB}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -27,6 +29,10 @@ Global
 		{834A99A3-093D-492F-8BDE-9EF82CCB1F4D}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{834A99A3-093D-492F-8BDE-9EF82CCB1F4D}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{834A99A3-093D-492F-8BDE-9EF82CCB1F4D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8CD53476-4A0B-4807-9EFE-4D35078BC1CB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8CD53476-4A0B-4807-9EFE-4D35078BC1CB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8CD53476-4A0B-4807-9EFE-4D35078BC1CB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8CD53476-4A0B-4807-9EFE-4D35078BC1CB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

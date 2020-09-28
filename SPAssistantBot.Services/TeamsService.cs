@@ -27,7 +27,7 @@ namespace SPAssistantBot.Services
             _graphServiceHttpClient = new GraphServiceHttpClient(configuration, log);
         }
 
-        public async Task<Microsoft.Graph.Group> CreateGroup(string groupName, string description, string siteType, string owners, string members)
+        public async Task<Microsoft.Graph.Group> CreateGroup(string groupName, string description, string owners, string members)
         {
             var mailNickName = GetMailNickNameFromGroupName(groupName);
             var ownerList = await GetUserList(owners);
@@ -95,11 +95,11 @@ namespace SPAssistantBot.Services
             return usersList.ToArray();
         }
 
-        public async Task<string> CreateTeam(string teamName, string description, string siteType, string owners, string members)
+        public async Task<string> CreateTeam(string teamName, string description, string owners, string members)
         {
             string newTeamId = string.Empty;
 
-            var group = await CreateGroup(teamName, description, "Team Site", owners, members);
+            var group = await CreateGroup(teamName, description, owners, members);
 
             if (group != null)
             {
@@ -137,7 +137,7 @@ namespace SPAssistantBot.Services
             return newTeamId;
         }
 
-        public async Task<string> CloneTeam(string templateTeamId, string teamName, string description, string siteType, string owners, string members)
+        public async Task<string> CloneTeam(string templateTeamId, string teamName, string description)
         {
             var newTeamId = string.Empty;
 

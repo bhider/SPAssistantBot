@@ -1,4 +1,4 @@
-﻿namespace SPAssistantBot.Functions.Models
+﻿namespace SPAssistant.SPServices.Functions.Models
 {
     class CreateSiteRequest
     {
@@ -6,9 +6,9 @@
 
         public string Description { get; set; }
 
-        public string TemplateSiteUrl { get; set; }
-
         //public string SiteType { get; set; }
+
+        public string TemplateSiteUrl { get; set; }
 
         public string OwnersUserEmailListAsString { get; set; }
 

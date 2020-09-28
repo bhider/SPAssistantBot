@@ -37,7 +37,9 @@ namespace SPAssistantBot.Dialogs
             {
                 InitialStepAsync,
                 DescriptionStepAsync,
-                SiteTypeStepAsync,
+                ConfirmTemplateUseStepAsync,
+                TemplateNameStepAsync,
+                //SiteTypeStepAsync,
                 OwnersListStepAsync,
                 MembersListStepAsync,
                 FinalStepAsync
@@ -45,7 +47,9 @@ namespace SPAssistantBot.Dialogs
 
             AddDialog(new TextPrompt($"${nameof(SPAssistantDialog)}.siteTitle"));
             AddDialog(new TextPrompt($"{nameof(SPAssistantDialog)}.description"));
-            AddDialog(new ChoicePrompt($"{nameof(SPAssistantDialog)}.siteType"));
+            AddDialog(new ConfirmPrompt($"{nameof(SPAssistantDialog)}.confirm"));
+            AddDialog(new TextPrompt ($"{nameof(SPAssistantDialog)}.templateName"));
+            //AddDialog(new ChoicePrompt($"{nameof(SPAssistantDialog)}.siteType"));
             AddDialog(new TextPrompt($"{nameof(SPAssistantDialog)}.owners"));
             AddDialog(new TextPrompt($"{nameof(SPAssistantDialog)}.members"));
             AddDialog(new WaterfallDialog($"{nameof(SPAssistantDialog)}.mainflow", waterfallSteps));
@@ -68,18 +72,40 @@ namespace SPAssistantBot.Dialogs
             return await stepContext.BeginDialogAsync($"{nameof(SPAssistantDialog)}.description", new PromptOptions { Prompt = MessageFactory.Text("Please enter a description for your site") }, cancellationToken);
         }
 
-        public async Task<DialogTurnResult> SiteTypeStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        private async Task<DialogTurnResult> ConfirmTemplateUseStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
             var description = (string)stepContext.Result;
             stepContext.Values["siteDescription"] = description;
 
-            return await stepContext.BeginDialogAsync($"{nameof(SPAssistantDialog)}.siteType", new PromptOptions { Prompt = MessageFactory.Text("What type of site do you want to create?"), Choices = ChoiceFactory.ToChoices(new List<string> { "Team Site", "Communication Site" }) }, cancellationToken);
+            return await stepContext.BeginDialogAsync($"{ nameof(SPAssistantDialog)}.confirm", new PromptOptions { Prompt = MessageFactory.Text("Do you want to clone a site?") }, cancellationToken);
         }
+
+        private async Task<DialogTurnResult> TemplateNameStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            var useTemplate = (bool)stepContext.Result;
+            stepContext.Values["useTemplate"] = useTemplate;
+
+            if (useTemplate)
+            {
+                return await stepContext.BeginDialogAsync($"{nameof(SPAssistantDialog)}.templateName", new PromptOptions { Prompt = MessageFactory.Text("Please enter the url of the site you want to clone") }, cancellationToken);
+                //return await stepContext.BeginDialogAsync($"{nameof(SPAssistantDialog)}.siteType", new PromptOptions { Prompt = MessageFactory.Text("What type of site do you want to create?"), Choices = ChoiceFactory.ToChoices(new List<string> { "Team Site", "Communication Site" }) }, cancellationToken);
+            }
+
+            return await stepContext.NextAsync(null, cancellationToken);// ", new PromptOptions { Prompt = MessageFactory.Text("Do you want to clone a team?") }, cancellationToken);
+        }
+
+        //public async Task<DialogTurnResult> SiteTypeStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        //{
+        //    var description = (string)stepContext.Result;
+        //    stepContext.Values["siteDescription"] = description;
+
+        //    return await stepContext.BeginDialogAsync($"{nameof(SPAssistantDialog)}.siteType", new PromptOptions { Prompt = MessageFactory.Text("What type of site do you want to create?"), Choices = ChoiceFactory.ToChoices(new List<string> { "Team Site", "Communication Site" }) }, cancellationToken);
+        //}
 
         private async Task<DialogTurnResult> OwnersListStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
-            var siteType = (FoundChoice)stepContext.Result;
-            stepContext.Values["siteType"] = siteType.Value;
+            var templateUrl = (string)stepContext.Result;
+            stepContext.Values["templateUrl"] = templateUrl;
 
             return await stepContext.BeginDialogAsync($"{ nameof(SPAssistantDialog)}.owners", new PromptOptions { Prompt = MessageFactory.Text("Enter emails of site owners") }, cancellationToken);
         }
@@ -99,14 +125,14 @@ namespace SPAssistantBot.Dialogs
 
 
             var siteTitle = (string)stepContext.Values["siteTitle"];
-            var siteType = (string)stepContext.Values["siteType"];
+            var templateUrl = (string)stepContext.Values["templateUrl"];
             var description = (string)stepContext.Values["siteDescription"];
             var owners = (string)stepContext.Values["siteOwners"];
 
             if (!string.IsNullOrWhiteSpace(siteTitle))
             {
                 await stepContext.Context.SendActivityAsync(MessageFactory.Text($"Creating site could take a few seconds. Please wait...."), cancellationToken);
-                var teamSiteUrl = await CreateSite(siteTitle, description, siteType, owners, members); //spService.CreateSite(siteTitle, description, owners, members);
+                var teamSiteUrl = await CreateSite(siteTitle, description, templateUrl, owners, members); //spService.CreateSite(siteTitle, description, owners, members);
                 await stepContext.Context.SendActivityAsync(MessageFactory.Text($"Site ({teamSiteUrl}) creation complete"), cancellationToken);
             }
 
@@ -140,12 +166,12 @@ namespace SPAssistantBot.Dialogs
             return httpContent;
         }
 
-        private async Task<string> CreateSite(string siteTitle, string description, string siteType, string owners, string members)
+        private async Task<string> CreateSite(string siteTitle, string description, string templateUrl, string owners, string members)
         {
             var teamSiteUrl = string.Empty;
             var Url = configuration["CreateSiteUrl"];
 
-            var createSiteRequest = new { SiteTitle = siteTitle, Description = description, SiteType = siteType, OwnersUserEmailListAsString = owners, MembersUserEmailListAsString = members };
+            var createSiteRequest = new { SiteTitle = siteTitle, Description = description, TemplateSiteUrl = templateUrl, OwnersUserEmailListAsString = owners, MembersUserEmailListAsString = members };
 
             CancellationToken cancellationToken;
 

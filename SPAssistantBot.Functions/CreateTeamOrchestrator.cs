@@ -59,11 +59,11 @@ namespace SPAssistantBot.Functions
                 {
                     if (createTeamRequest.UseTemplate)
                     {
-                        teamSiteUrl = await _teamsService.CloneTeam("92568ef0 - 8a32 - 4029 - a847 - c0c1add8103d", createTeamRequest.TeamName, createTeamRequest.Description, createTeamRequest.TeamType, createTeamRequest.OwnersUserEmailListAsString, createTeamRequest.MembersUserEmailListAsString);
+                        teamSiteUrl = await _teamsService.CloneTeam("92568ef0 - 8a32 - 4029 - a847 - c0c1add8103d", createTeamRequest.TeamName, createTeamRequest.Description);
                     }
                     else
                     {
-                        teamSiteUrl = await _teamsService.CreateTeam(createTeamRequest.TeamName, createTeamRequest.Description, createTeamRequest.TeamType, createTeamRequest.OwnersUserEmailListAsString, createTeamRequest.MembersUserEmailListAsString);
+                        teamSiteUrl = await _teamsService.CreateTeam(createTeamRequest.TeamName, createTeamRequest.Description, createTeamRequest.OwnersUserEmailListAsString, createTeamRequest.MembersUserEmailListAsString);
                     }
 
                     string responseMessage = createTeamRequest.TeamName;

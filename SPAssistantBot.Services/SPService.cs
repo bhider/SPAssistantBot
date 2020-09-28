@@ -27,14 +27,14 @@ namespace SPAssistantBot.Services
             //this.log = log;
         }
 
-        public string CreateSite(string siteTitle, string description, string siteType, string owners, string members)
+        public string CreateSite(string siteTitle, string description, string owners, string members)
         {
             var teamsiteUrl = string.Empty;
             
             using (var certificate509 = KVService.GetCertificateAsync())
             {
                 var repo = new CsomSPRepository(AADApplicationId, AADApplicationSecret, SPTenant, certificate509, Log);
-                var groupId  = repo.CreateSite(siteTitle, description, siteType, owners, members);
+                var groupId  = repo.CreateSite(siteTitle, description,  owners, members);
                 teamsiteUrl = repo.GetSiteUrlFromGroupId(groupId);
             }
 

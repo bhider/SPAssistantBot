@@ -29,9 +29,8 @@ namespace SPAssistantBot.Services
             this.log = log;
         }
 
-        public string CreateSite(string siteTitle, string description, string siteType, string owners, string members)
+        public string CreateSite(string siteTitle, string description, string owners, string members)
         {
-            var teamSiteUrl = string.Empty;
             GraphServiceClient graphClient = GetGraphServiceClient();
 
             var mailNickName = GetMailNickNameFromSiteTitle(siteTitle);
@@ -91,18 +90,7 @@ namespace SPAssistantBot.Services
             var graphCLient = GetGraphServiceClient();
            
             Microsoft.Graph.User user = null;
-
-            //try
-            //{
-            //    var awaiter1 = graphCLient.Users["63e8948c-35ef-4dc9-b305-1538edabd841"].Request().GetAsync().GetAwaiter();
-            //    user = awaiter1.GetResult();
-            //}
-            //catch (System.Exception ex)
-            //{
-
-            //    var mesg = ex.Message;
-            //}
-
+                        
             try
             {
                 var awaiter1 = graphCLient.Users[email].Request().GetAsync().GetAwaiter();
@@ -110,7 +98,6 @@ namespace SPAssistantBot.Services
             }
             catch (System.Exception ex)
             {
-
                 var mesg = ex.Message;
             }
 
@@ -122,9 +109,9 @@ namespace SPAssistantBot.Services
             try
             {
                 GraphServiceClient graphClient = GetGraphServiceClient();
-                //var httpRequestMsg = graphClient.Groups[groupId].Sites["root"].Request().GetHttpRequestMessage();
-                //var site = await graphClient.Groups[groupId].Sites["root"].Request().GetAsync();
+                
                 var site = await GetGroupTeamSiteWithRetry(graphClient, groupId);
+                
                 return site;
             }
             catch (Exception ex)
@@ -139,6 +126,7 @@ namespace SPAssistantBot.Services
             Site site = null;
 
             int count = maxTries;
+
             while(site == null && count > 0)
             {
                 try
@@ -169,6 +157,7 @@ namespace SPAssistantBot.Services
             foreach(var userEmail in userEmails)
             {
                 var user = GetUserFromEmail(userEmail);
+
                 if (user != null)
                 {
                     var userStr = $"https://graph.microsoft.com/v1.0/users/{user.Id}";
