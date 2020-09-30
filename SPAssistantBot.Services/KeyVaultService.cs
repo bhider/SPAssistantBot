@@ -3,6 +3,7 @@ using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 
 namespace SPAssistantBot.Services
 {
@@ -21,12 +22,12 @@ namespace SPAssistantBot.Services
             return new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
         }
 
-        public X509Certificate2 GetCertificateAsync()
+        public async Task<X509Certificate2> GetCertificateAsync()
         {
             var keyVaultClient = GetKeyVaultClient();
             //var certificateBundle = keyVaultClient.GetCertificateAsync(certificateIdentifier).GetAwaiter().GetResult();
             //var secretIdentifier = certificateBundle.SecretIdentifier.Identifier;
-            var secret = keyVaultClient.GetSecretAsync(keyVaultSecretIdentifier).GetAwaiter().GetResult();
+            var secret = await keyVaultClient.GetSecretAsync(keyVaultSecretIdentifier);//.GetAwaiter().GetResult();
             var pfxBytes = Convert.FromBase64String(secret.Value);
             return new X509Certificate2(pfxBytes);
         }

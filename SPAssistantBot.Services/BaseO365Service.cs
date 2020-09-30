@@ -27,7 +27,7 @@ namespace SPAssistantBot.Services
 
         protected async Task<string> GetAccessToken(string[] scopes)
         {
-            using (var certificate509 = KVService.GetCertificateAsync())
+            using (var certificate509 = await KVService.GetCertificateAsync())
             {
                 IConfidentialClientApplication clientApp = ConfidentialClientApplicationBuilder.Create(AADApplicationId).WithCertificate(certificate509).WithTenantId(SPTenant).Build();
                 var authResult = await clientApp.AcquireTokenForClient(scopes).ExecuteAsync();

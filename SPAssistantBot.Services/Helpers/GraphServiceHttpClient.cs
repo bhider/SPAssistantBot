@@ -152,6 +152,7 @@ namespace SPAssistantBot.Services.Helpers
                     var monitorUrl = $"https://graph.microsoft.com/v1.0{location}";
                     var statusCode = HttpStatusCode.NotFound;
                     HttpResponseMessage opResponse = null;
+
                     while (statusCode != HttpStatusCode.OK)
                     {
                         opResponse = await httpClient.GetAsync(monitorUrl);

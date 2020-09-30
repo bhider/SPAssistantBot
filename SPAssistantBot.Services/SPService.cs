@@ -15,7 +15,8 @@ namespace SPAssistantBot.Services
         //private readonly string keyVaultSecretIdentifier;
         //private readonly Microsoft.Extensions.Logging.ILogger log;
         //private readonly KeyVaultService keyVaultService;
-        public SPService(IConfiguration configuration, KeyVaultService keyVaultService,
+        private readonly SPCustomisationService _spCustomisationService;
+        public SPService(IConfiguration configuration, KeyVaultService keyVaultService, SPCustomisationService spCustomisationService,
             ILogger<SPService> log) : base(configuration, keyVaultService, log)
         {
             //this.aadApplicationId = configuration["AADClientId"];
@@ -25,20 +26,26 @@ namespace SPAssistantBot.Services
             //this.keyVaultService = keyVaultService;
             ////this.certificate509 = certificate509;
             //this.log = log;
+            _spCustomisationService = spCustomisationService;
         }
 
-        public string CreateSite(string siteTitle, string description, string owners, string members)
+        public async Task<string> CreateSite(string siteTitle, string description, string templateSiteUrl, string owners, string members)
         {
-            var teamsiteUrl = string.Empty;
+            var teamSiteUrl = string.Empty;
             
-            using (var certificate509 = KVService.GetCertificateAsync())
+            using (var certificate509 = await KVService.GetCertificateAsync())
             {
                 var repo = new CsomSPRepository(AADApplicationId, AADApplicationSecret, SPTenant, certificate509, Log);
                 var groupId  = repo.CreateSite(siteTitle, description,  owners, members);
-                teamsiteUrl = repo.GetSiteUrlFromGroupId(groupId);
+
+                teamSiteUrl = repo.GetSiteUrlFromGroupId(groupId);
+                if (!string.IsNullOrWhiteSpace(templateSiteUrl))
+                {
+                    var success = await _spCustomisationService.CustomiseAsync(templateSiteUrl, teamSiteUrl);
+                }
             }
 
-            return teamsiteUrl;
+            return teamSiteUrl;
         }
 
          

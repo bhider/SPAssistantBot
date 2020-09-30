@@ -4,6 +4,7 @@ using Microsoft.Bot.Builder.Dialogs.Choices;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Recognizers.Text.Choice;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SPAssistantBot.Services;
 using System;
 using System.Collections.Generic;
@@ -132,7 +133,9 @@ namespace SPAssistantBot.Dialogs
             if (!string.IsNullOrWhiteSpace(siteTitle))
             {
                 await stepContext.Context.SendActivityAsync(MessageFactory.Text($"Creating site could take a few seconds. Please wait...."), cancellationToken);
+
                 var teamSiteUrl = await CreateSite(siteTitle, description, templateUrl, owners, members); //spService.CreateSite(siteTitle, description, owners, members);
+
                 await stepContext.Context.SendActivityAsync(MessageFactory.Text($"Site ({teamSiteUrl}) creation complete"), cancellationToken);
             }
 
@@ -173,18 +176,48 @@ namespace SPAssistantBot.Dialogs
 
             var createSiteRequest = new { SiteTitle = siteTitle, Description = description, TemplateSiteUrl = templateUrl, OwnersUserEmailListAsString = owners, MembersUserEmailListAsString = members };
 
-            CancellationToken cancellationToken;
-
-
             using (var client = new HttpClient())
             using (var request = new HttpRequestMessage(HttpMethod.Post, Url))
             using (var httpContent = CreateHttpContent(createSiteRequest))
             {
                 request.Content = httpContent;
 
-                var responseMessage = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken)
+                var responseMessage = await client.SendAsync(request, HttpCompletionOption.ResponseHeadersRead)
                     .ConfigureAwait(false);
-                teamSiteUrl = await responseMessage.Content.ReadAsStringAsync();
+                if (responseMessage.IsSuccessStatusCode && responseMessage.StatusCode == System.Net.HttpStatusCode.Accepted)
+                {
+                    var statusCheckUri = responseMessage.Headers.Location;
+
+                    var count = 50;
+                    var queryResponse = await client.GetAsync(statusCheckUri);
+                    var queryResult = await queryResponse.Content.ReadAsStringAsync();
+                    var result = JObject.Parse(queryResult);
+                    var status = result.Value<string>("runtimeStatus");
+                    var isComplete = status == "Completed" || status == "Failed";
+                    while (count > 0 && !isComplete)
+                    {
+                        await Task.Delay(10000);
+                        count--;
+                        queryResponse = await client.GetAsync(statusCheckUri);
+                        queryResult = await queryResponse.Content.ReadAsStringAsync();
+                        result = JObject.Parse(queryResult);
+                        status = result.Value<string>("runtimeStatus");
+                        isComplete = status == "Completed" || status == "Failed";// result.Value<string>("runtimeStatus") == "Completed";
+                    }
+                    if ((isComplete) && (status == "Completed"))
+                    {
+                        teamSiteUrl = result.Value<string>("output");
+                    }
+                    else
+                    {
+                        teamSiteUrl = "Failed";
+                    }
+                }
+                else
+                {
+                    teamSiteUrl = await responseMessage.Content.ReadAsStringAsync();
+                }
+                //teamSiteUrl = await responseMessage.Content.ReadAsStringAsync();
             }
 
             return teamSiteUrl;

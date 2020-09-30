@@ -16,6 +16,7 @@ namespace SPAssistantBot.Functions
             builder.Services.AddSingleton<KeyVaultService>();
             builder.Services.AddSingleton<SPService>();
             builder.Services.AddSingleton<TeamsService>();
+            builder.Services.AddSingleton<SPCustomisationService>();
         }
     }
 }

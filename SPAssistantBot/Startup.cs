@@ -35,6 +35,7 @@ namespace SPAssistantBot
             services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
             services.AddSingleton<BotServices>();
             services.AddSingleton<KeyVaultService>();
+            services.AddSingleton<SPCustomisationService>();
             services.AddSingleton<SPService>();
             services.AddSingleton<TeamsService>();
             ConfigureState(services);
