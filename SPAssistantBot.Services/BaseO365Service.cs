@@ -8,12 +8,7 @@ namespace SPAssistantBot.Services
 {
     public abstract class BaseO365Service
     {
-        //private readonly string aadApplicationId;
-        //private readonly string aadClientSecret;
-        //private readonly string spTenant;
-        //private readonly string keyVaultSecretIdentifier;
-        //private readonly Microsoft.Extensions.Logging.ILogger log;
-        //private readonly KeyVaultService keyVaultService;
+       
         public BaseO365Service(IConfiguration configuration, KeyVaultService keyVaultService, ILogger log)
         {
             AADApplicationId = configuration["AADClientId"];

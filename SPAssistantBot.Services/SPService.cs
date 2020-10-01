@@ -39,7 +39,7 @@ namespace SPAssistantBot.Services
                 using (var certificate509 = await KVService.GetCertificateAsync(Log))
                 {
                     var repo = new CsomSPRepository(AADApplicationId, AADApplicationSecret, SPTenant, certificate509, Log);
-                    var groupId = repo.CreateSite(siteTitle, description, owners, members);
+                    var groupId = await repo.CreateSite(siteTitle, description, owners, members);
 
                     teamSiteUrl = await repo.GetSiteUrlFromGroupId(groupId);
 

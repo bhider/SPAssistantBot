@@ -29,13 +29,13 @@ namespace SPAssistantBot.Services
             this.log = log;
         }
 
-        public string CreateSite(string siteTitle, string description, string owners, string members)
+        public async Task<string> CreateSite(string siteTitle, string description, string owners, string members)
         {
             GraphServiceClient graphClient = GetGraphServiceClient();
 
             var mailNickName = GetMailNickNameFromSiteTitle(siteTitle);
-            var ownerList = GetUserList(owners);
-            var memberList = GetUserList(members);
+            var ownerList = await GetUserList(owners);
+            var memberList = await GetUserList(members);
 
             var group = new GroupExtended
             {
@@ -58,21 +58,9 @@ namespace SPAssistantBot.Services
             }
 
             var scopes = new string[] { "https://graph.microsoft.com/Group.ReadWrite.All" };
-            var awaiter = graphClient.Groups.Request().WithScopes(scopes).AddAsync(group).GetAwaiter();
+            var newGroup = await graphClient.Groups.Request().WithScopes(scopes).AddAsync(group);
 
-            var result = awaiter.GetResult();
-
-            //try
-            //{
-            //    var siteawaiter = GetGroupTeamSite(result.Id).GetAwaiter();
-            //    var teamSite = siteawaiter.GetResult();
-            //    teamSiteUrl = teamSite.WebUrl;
-            //}
-            //catch(Exception ex)
-            //{
-            //    log.LogError(ex.Message);
-            //}
-            return result.Id;
+            return newGroup.Id;
         }
 
         public async Task<string> GetSiteUrlFromGroupId(string groupId)
@@ -83,7 +71,6 @@ namespace SPAssistantBot.Services
 
             var teamSite = await GetGroupTeamSite(groupId);
 
-            //var teamSite = siteawaiter.GetResult();
             if (teamSite != null)
             {
                 teamSiteUrl = teamSite.WebUrl;
@@ -93,7 +80,7 @@ namespace SPAssistantBot.Services
         }
 
 
-        public Microsoft.Graph.User GetUserFromEmail(string email)
+        public async Task<Microsoft.Graph.User> GetUserFromEmail(string email)
         {
             log.LogInformation($"User: {email}");
 
@@ -103,12 +90,13 @@ namespace SPAssistantBot.Services
                         
             try
             {
-                var awaiter1 = graphCLient.Users[email].Request().GetAsync().GetAwaiter();
-                user = awaiter1.GetResult();
+                user = await graphCLient.Users[email].Request().GetAsync();
+                
             }
             catch (System.Exception ex)
             {
-                var mesg = ex.Message;
+                log.LogError($"Get User from email exception: {ex.Message}");
+             
             }
 
             return user;
@@ -126,7 +114,7 @@ namespace SPAssistantBot.Services
             }
             catch (Exception ex)
             {
-                var message = ex.Message;
+                log.LogError($"Get site from group exception: {ex.Message}");
                 throw;
             }
         }
@@ -163,7 +151,7 @@ namespace SPAssistantBot.Services
         }
 
 
-        private string[] GetUserList(string userEmailList)
+        private async Task<string[]> GetUserList(string userEmailList)
         {
             log.LogInformation($"Getting details for users {userEmailList}");
 
@@ -173,7 +161,7 @@ namespace SPAssistantBot.Services
 
             foreach(var userEmail in userEmails)
             {
-                var user = GetUserFromEmail(userEmail);
+                var user = await GetUserFromEmail(userEmail);
 
                 if (user != null)
                 {
