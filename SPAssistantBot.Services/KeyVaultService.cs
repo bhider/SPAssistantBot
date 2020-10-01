@@ -16,13 +16,6 @@ namespace SPAssistantBot.Services
             keyVaultSecretIdentifier = configuration["KeyVaultSecretIdentifier"];
         }
 
-        private KeyVaultClient GetKeyVaultClient()
-        {
-            var azureServiceTokenProvider = new AzureServiceTokenProvider();
-
-            return new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
-        }
-
         public async Task<X509Certificate2> GetCertificateAsync(ILogger log)
         {
             try
@@ -53,6 +46,13 @@ namespace SPAssistantBot.Services
                 throw;
             }
 
+        }
+
+        private KeyVaultClient GetKeyVaultClient()
+        {
+            var azureServiceTokenProvider = new AzureServiceTokenProvider();
+
+            return new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
         }
     }
 

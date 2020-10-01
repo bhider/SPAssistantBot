@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SPAssistantBot.Services.Model
+﻿namespace SPAssistantBot.Services.Model
 {
     public class TeamsAppId
     {

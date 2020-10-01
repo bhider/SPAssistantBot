@@ -2,9 +2,6 @@
 using Microsoft.Bot.Builder.Dialogs;
 using SPAssistantBot.Model;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace SPAssistantBot.Services
 {
@@ -33,7 +30,7 @@ namespace SPAssistantBot.Services
             InitializeAccessors();
         }
 
-        public void InitializeAccessors()
+        private void InitializeAccessors()
         {
             UserProfileAccessor = UserState.CreateProperty<UserProfile>(UserProfileId);
             ConversationDataAccessor = ConversationState.CreateProperty<ConversationData>(ConversationDataId);

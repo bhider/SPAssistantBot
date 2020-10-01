@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SPAssistantBot.Services
+﻿namespace SPAssistantBot.Services
 {
     class Constants
     {

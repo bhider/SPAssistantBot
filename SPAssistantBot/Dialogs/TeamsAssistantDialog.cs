@@ -20,6 +20,7 @@ namespace SPAssistantBot.Dialogs
         private readonly TeamsService _teamsService;
 
         private readonly IConfiguration _configuration;
+
         public TeamsAssistantDialog(string dialogId, TeamsService teamsService, IConfiguration configuration) : base(dialogId)
         {
             _teamsService = teamsService;
@@ -68,7 +69,6 @@ namespace SPAssistantBot.Dialogs
             return await stepContext.BeginDialogAsync($"{nameof(TeamsAssistantDialog)}.description", new PromptOptions { Prompt = MessageFactory.Text("Please enter a description for your team") }, cancellationToken);
         }
 
-
         private async Task<DialogTurnResult> ConfirmTemplateUseStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
             var description = (string)stepContext.Result;
@@ -91,7 +91,6 @@ namespace SPAssistantBot.Dialogs
             return await stepContext.NextAsync(null, cancellationToken);// ", new PromptOptions { Prompt = MessageFactory.Text("Do you want to clone a team?") }, cancellationToken);
         }
 
-
         private async Task<DialogTurnResult> OwnersListStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
             var templateName = (FoundChoice)stepContext.Result;
@@ -100,7 +99,6 @@ namespace SPAssistantBot.Dialogs
             return await stepContext.BeginDialogAsync($"{ nameof(TeamsAssistantDialog)}.owners", new PromptOptions { Prompt = MessageFactory.Text("Enter emails of team owners") }, cancellationToken);
         }
 
-        
         private async Task<DialogTurnResult> MembersListStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
             var owners = (string)stepContext.Result;
@@ -189,7 +187,7 @@ namespace SPAssistantBot.Dialogs
             return newTeam;
         }
 
-        public static void SerializeJsonIntoStream(object value, Stream stream)
+        private static void SerializeJsonIntoStream(object value, Stream stream)
         {
             using (var sw = new StreamWriter(stream, new UTF8Encoding(false), 1024, true))
             using (var jtw = new JsonTextWriter(sw) { Formatting = Formatting.None })

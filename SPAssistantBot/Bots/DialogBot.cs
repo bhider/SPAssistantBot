@@ -3,9 +3,6 @@ using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Logging;
 using SPAssistantBot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,6 +13,7 @@ namespace SPAssistantBot.Bots
         private readonly StateService _stateService;
         private readonly T _dialog;
         private readonly ILogger _logger;
+
         public DialogBot(StateService stateService, T dialog, ILogger<DialogBot<T>> logger)
         {
             _stateService = stateService;

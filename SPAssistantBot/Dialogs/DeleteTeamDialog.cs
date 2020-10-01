@@ -1,12 +1,8 @@
 ﻿using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
 using Microsoft.Extensions.Configuration;
-using Newtonsoft.Json;
 using SPAssistantBot.Helpers;
 using SPAssistantBot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +14,7 @@ namespace SPAssistantBot.Dialogs
         private readonly TeamsService _teamsService;
 
         private readonly IConfiguration _configuration;
+
         public DeleteTeamDialog(string dialogId, TeamsService teamsService, IConfiguration configuration) : base(dialogId)
         {
             _teamsService = teamsService;

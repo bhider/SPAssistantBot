@@ -15,6 +15,7 @@ namespace SPAssistant.SPServices.Functions
         {
             ApplicationHelper.Startup();
         }
+
         [FunctionName("CustomiseSPSite")]
         public  static async Task<HttpResponseMessage> Run([HttpTrigger(AuthorizationLevel.Anonymous, "get", "post", Route = null)]HttpRequestMessage req, [DurableClient] IDurableOrchestrationClient starter,  TraceWriter log)
         {

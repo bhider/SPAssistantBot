@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Microsoft.Graph.Auth;
-using Microsoft.Identity.Client;
 using SPAssistantBot.Services.Helpers;
 using SPAssistantBot.Services.Model;
 using System;
@@ -19,6 +18,7 @@ namespace SPAssistantBot.Services
         private readonly string spTenant;
         private readonly X509Certificate2 certificate509;
         private readonly Microsoft.Extensions.Logging.ILogger log;
+
         public CsomSPRepository(string aadApplicationId, string aadClientSecret, string spTenant, X509Certificate2 certificate509,
             Microsoft.Extensions.Logging.ILogger log)
         {
@@ -78,7 +78,6 @@ namespace SPAssistantBot.Services
 
             return teamSiteUrl;
         }
-
 
         public async Task<Microsoft.Graph.User> GetUserFromEmail(string email)
         {
@@ -149,7 +148,6 @@ namespace SPAssistantBot.Services
 
             return site;
         }
-
 
         private async Task<string[]> GetUserList(string userEmailList)
         {

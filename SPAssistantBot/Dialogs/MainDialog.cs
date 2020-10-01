@@ -16,6 +16,7 @@ namespace SPAssistantBot.Dialogs
         private readonly SPService _spServices;
         private readonly TeamsService _teamsServices;
         private readonly IConfiguration _configuration;
+
         public MainDialog(StateService stateService, BotServices botservices, SPService spService,  TeamsService teamsServices, IConfiguration configuration)
         {
             _stateService = stateService ?? throw new ArgumentNullException(nameof(stateService));

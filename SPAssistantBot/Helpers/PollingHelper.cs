@@ -1,8 +1,5 @@
-﻿using Microsoft.Bot.Builder.Dialogs;
-using Newtonsoft.Json.Linq;
+﻿using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -10,8 +7,6 @@ namespace SPAssistantBot.Helpers
 {
     public static class PollingHelper
     {
-        
-
         public static async Task<T> ExecuteLongPollingOperation<T>(HttpClient client, Uri statusQueryUri,  TimeSpan? retryInterval = null, int maxRetries = 50)
         {
             var count = maxRetries;

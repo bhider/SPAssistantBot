@@ -2,17 +2,13 @@
 using Microsoft.Azure.Services.AppAuthentication;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SPAssistant.SPServices.Functions.Helper
 {
     public static class  KeyVaultService
     {
-
         private static KeyVaultClient GetKeyVaultClient()
         {
             var azureServiceTokenProvider = new AzureServiceTokenProvider();
@@ -24,7 +20,6 @@ namespace SPAssistant.SPServices.Functions.Helper
         //granted access to the KeyVault.
         //When deployed, enable Managed Identity for the Function App and ensure that the Managed identity has been granted appropriate
         //access to the KeyVault.
-
         public static async Task<X509Certificate2> GetCertificateAsync(string certificateIdentifier, ILogger log)
         {
             log.LogInformation("Retrieving certificate...");

@@ -19,6 +19,7 @@ namespace SPAssistantBot.Services
         {
             _log = log;
         }
+
         public  async Task<bool> CustomiseAsync(string templateSiteUrl, string targetSiteUrl)
         {
             _log.LogInformation("Calling function to customise site");

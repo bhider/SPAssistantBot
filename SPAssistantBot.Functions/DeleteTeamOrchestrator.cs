@@ -3,13 +3,11 @@ using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
 using SPAssistantBot.Services;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SPAssistantBot.Functions
 {
-    
+
     public static class DeleteTeamOrchestrator
     {
         [FunctionName("O_DeleteTeams")]

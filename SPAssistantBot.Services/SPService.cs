@@ -1,9 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Client;
-using Microsoft.SharePoint.Client;
 using System;
-using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace SPAssistantBot.Services

@@ -1,13 +1,10 @@
 ﻿using Microsoft.Azure.WebJobs;
 using Microsoft.Azure.WebJobs.Extensions.DurableTask;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 using Newtonsoft.Json;
 using SPAssistantBot.Functions.Models;
 using SPAssistantBot.Services;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SPAssistantBot.Functions

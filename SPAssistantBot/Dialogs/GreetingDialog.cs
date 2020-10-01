@@ -1,11 +1,7 @@
 ﻿using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Extensions.Primitives;
 using SPAssistantBot.Services;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Security.Cryptography.Xml;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,6 +10,7 @@ namespace SPAssistantBot.Dialogs
     public class GreetingDialog : ComponentDialog
     {
         private readonly StateService _stateService;
+
         public GreetingDialog(string dialogId, StateService stateService) : base(dialogId)
         {
             _stateService = stateService ?? throw new ArgumentNullException(nameof(stateService));

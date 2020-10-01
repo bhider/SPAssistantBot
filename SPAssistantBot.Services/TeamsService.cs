@@ -170,6 +170,34 @@ namespace SPAssistantBot.Services
             return await _graphServiceHttpClient.ExecutePatchAsync(resourceUrl, JObject.FromObject(body));
         }
 
+        public async Task<string> DeleteTeamsAsync(string teamsList)
+        {
+            Log.LogInformation($"Deleting team(s): {teamsList}");
+
+            var deletedTeams = new StringBuilder();
+            var teams = await ListTeams();
+            var teamsToDeleteArray = teamsList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+
+            foreach (var teamtoDelete in teamsToDeleteArray)
+            {
+                var targetTeams = teams.Where(t => t.DisplayName.Trim().Equals(teamtoDelete.Trim(), StringComparison.OrdinalIgnoreCase));
+                foreach (var team in targetTeams)
+                {
+                    if (team != null)
+                    {
+                        var resourceUrl = $"{GraphAPIBaseUrl}v1.0/groups/{team.Id}";
+                        var deleted = await _graphServiceHttpClient.ExecuteDeleteAsync(resourceUrl);
+                        if (deleted)
+                        {
+                            deletedTeams.Append(deletedTeams.Length > 0 ? $", {teamtoDelete}" : $"{teamtoDelete}");
+                        }
+                    }
+                }
+            }
+
+            return deletedTeams.ToString();
+        }
+
         public async Task<Microsoft.Graph.Group> GetGroupById(string groupId)
         {
             var resourceUrl = $"{GraphAPIBaseUrl}v1.0/groups/{groupId}";
@@ -223,34 +251,6 @@ namespace SPAssistantBot.Services
             }
 
             return teamSiteUrl;
-        }
-
-        public async Task<string> DeleteTeamsAsync(string teamsList)
-        {
-            Log.LogInformation($"Deleting team(s): {teamsList}");
-
-            var deletedTeams = new StringBuilder();
-            var teams = await ListTeams();
-            var teamsToDeleteArray = teamsList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
-
-            foreach (var teamtoDelete in teamsToDeleteArray)
-            {
-                var targetTeams = teams.Where(t => t.DisplayName.Trim().Equals(teamtoDelete.Trim(), StringComparison.OrdinalIgnoreCase));
-                foreach (var team in targetTeams)
-                {
-                    if (team != null)
-                    {
-                        var resourceUrl = $"{GraphAPIBaseUrl}v1.0/groups/{team.Id}";
-                        var deleted = await _graphServiceHttpClient.ExecuteDeleteAsync(resourceUrl);
-                        if (deleted)
-                        {
-                            deletedTeams.Append(deletedTeams.Length > 0 ? $", {teamtoDelete}" : $"{teamtoDelete}");
-                        }
-                    }
-                }
-            }
-
-            return deletedTeams.ToString();
         }
 
         public async Task<List<TeamsTabExtended>> GetChannelTabs(string teamId, string channelId)

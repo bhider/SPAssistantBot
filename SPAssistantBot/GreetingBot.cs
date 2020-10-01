@@ -2,9 +2,7 @@
 using Microsoft.Bot.Schema;
 using SPAssistantBot.Model;
 using SPAssistantBot.Services;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,6 +11,7 @@ namespace SPAssistantBot
     public class GreetingBot : ActivityHandler
     {
         private readonly StateService stateService;
+
         public GreetingBot(StateService stateService)
         {
             this.stateService = stateService;

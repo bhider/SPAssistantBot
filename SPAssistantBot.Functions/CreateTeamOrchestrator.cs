@@ -5,8 +5,6 @@ using Newtonsoft.Json;
 using SPAssistantBot.Functions.Models;
 using SPAssistantBot.Services;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SPAssistantBot.Functions
@@ -79,7 +77,7 @@ namespace SPAssistantBot.Functions
                     }
 
                     string responseMessage = createTeamRequest.TeamName;
-                    //return new OkObjectResult(responseMessage);
+                    
                 }
                 catch (Exception ex)
                 {

@@ -1,9 +1,6 @@
 ﻿using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection;
 using SPAssistantBot.Services;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 [assembly: FunctionsStartup(typeof(SPAssistantBot.Functions.Startup))]
 namespace SPAssistantBot.Functions

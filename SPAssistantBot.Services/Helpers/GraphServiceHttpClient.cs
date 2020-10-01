@@ -3,7 +3,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
 using Newtonsoft.Json.Linq;
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
@@ -13,56 +12,17 @@ namespace SPAssistantBot.Services.Helpers
 {
     public class GraphServiceHttpClient : IDisposable
     {
-        //private readonly IConfiguration _configuration;
-        
         private static HttpClient httpClient;
-
-         
 
         private bool disposedValue;
 
        
         public GraphServiceHttpClient(IConfiguration configuration, ILogger log)
         {
-            //_configuration = configuration;
             Init(configuration);
             Log = log;
         }
 
-
-
-        private static void  Init(IConfiguration configuration)
-        {
-            var aadApplicationId = configuration["AADClientId"];
-            var aadApplicationSecret = configuration["AADClientSecret"];
-            var spTenant = configuration["Tenant"];
-            //var accessToken = await GetAccessToken(aadApplicationId, aadApplicationSecret, spTenant);
-
-            httpClient = new HttpClient(new OAuthMessageHandler(aadApplicationId, aadApplicationSecret, spTenant, new HttpClientHandler()));
-            
-            
-            //KVServiceCertIdentifier = configuration["KeyVaultSecretIdentifier"];
-            //KVService = keyVaultService;
-            //Log = log;
-        }
-
-        private ILogger Log { get;  set; }
-
-        private async Task<string> GetAccessToken( string applicationId, string applicationSecret, string tenant)
-        {
-            try
-            {
-                IConfidentialClientApplication clientApp = ConfidentialClientApplicationBuilder.Create(applicationId).WithClientSecret(applicationSecret).WithTenantId(tenant).Build();
-                var authResult = await clientApp.AcquireTokenForClient(new string[] { "https://graph.microsoft.com/.default" }).ExecuteAsync();
-                var accessToken = authResult.AccessToken;
-                return accessToken;
-            }
-            catch (Exception ex)
-            {
-                Log.LogError($"Get Access token error: {ex.Message}");
-                throw;
-            }
-        }
 
         public async Task<JObject> ExecuteGetAsync(string url)
         {
@@ -287,6 +247,40 @@ namespace SPAssistantBot.Services.Helpers
 
             disposedValue = true;
         }
+
+        private static void Init(IConfiguration configuration)
+        {
+            var aadApplicationId = configuration["AADClientId"];
+            var aadApplicationSecret = configuration["AADClientSecret"];
+            var spTenant = configuration["Tenant"];
+            //var accessToken = await GetAccessToken(aadApplicationId, aadApplicationSecret, spTenant);
+
+            httpClient = new HttpClient(new OAuthMessageHandler(aadApplicationId, aadApplicationSecret, spTenant, new HttpClientHandler()));
+
+
+            //KVServiceCertIdentifier = configuration["KeyVaultSecretIdentifier"];
+            //KVService = keyVaultService;
+            //Log = log;
+        }
+
+        private ILogger Log { get; set; }
+
+        private async Task<string> GetAccessToken(string applicationId, string applicationSecret, string tenant)
+        {
+            try
+            {
+                IConfidentialClientApplication clientApp = ConfidentialClientApplicationBuilder.Create(applicationId).WithClientSecret(applicationSecret).WithTenantId(tenant).Build();
+                var authResult = await clientApp.AcquireTokenForClient(new string[] { "https://graph.microsoft.com/.default" }).ExecuteAsync();
+                var accessToken = authResult.AccessToken;
+                return accessToken;
+            }
+            catch (Exception ex)
+            {
+                Log.LogError($"Get Access token error: {ex.Message}");
+                throw;
+            }
+        }
+
 
         public void Dispose()
         {

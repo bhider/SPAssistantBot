@@ -1,15 +1,10 @@
 ﻿using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Dialogs;
-using Microsoft.Bot.Builder.Dialogs.Choices;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Recognizers.Text.Choice;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SPAssistantBot.Services;
-using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Text;
