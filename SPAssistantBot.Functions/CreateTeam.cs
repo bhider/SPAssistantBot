@@ -37,35 +37,8 @@ namespace SPAssistantBot.Functions
             log.LogInformation($"Started orchestration with Id {instanceId}");
 
             return starter.CreateCheckStatusResponse(req, instanceId);
-            //var data = JsonConvert.DeserializeObject<CreateTeamRequest>(requestBody);
-
-            //if (data != null)
-            //{
-            //    try
-            //    {
-            //        if (data.UseTemplate)
-            //        {
-            //            await _teamsService.CloneTeam("92568ef0 - 8a32 - 4029 - a847 - c0c1add8103d", data.TeamName, data.Description, data.TeamType, data.OwnersUserEmailListAsString, data.MembersUserEmailListAsString);
-            //        }
-            //        else
-            //        {
-            //            var teamSiteUrl = await _teamsService.CreateTeam(data.TeamName, data.Description, data.TeamType, data.OwnersUserEmailListAsString, data.MembersUserEmailListAsString);
-            //        }
-                     
-            //        string responseMessage = data.TeamName;
-            //        return new OkObjectResult(responseMessage);
-            //    }
-            //    catch (Exception ex)
-            //    {
-            //        log.LogError(ex.Message);
-            //        throw;
-            //    }
-            }
-            //name = name ?? data?.name;
-
-
-
-            //return new OkObjectResult("Site not created");
-        //}
+            
+        }
+            
     }
 }

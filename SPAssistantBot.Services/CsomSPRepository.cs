@@ -75,11 +75,19 @@ namespace SPAssistantBot.Services
             return result.Id;
         }
 
-        public string GetSiteUrlFromGroupId(string groupId)
+        public async Task<string> GetSiteUrlFromGroupId(string groupId)
         {
-            var siteawaiter = GetGroupTeamSite(groupId).GetAwaiter();
-            var teamSite = siteawaiter.GetResult();
-            var teamSiteUrl = teamSite.WebUrl;
+            log.LogInformation("Getting site url for group");
+
+            var teamSiteUrl = string.Empty;
+
+            var teamSite = await GetGroupTeamSite(groupId);
+
+            //var teamSite = siteawaiter.GetResult();
+            if (teamSite != null)
+            {
+                teamSiteUrl = teamSite.WebUrl;
+            }
 
             return teamSiteUrl;
         }
@@ -87,6 +95,8 @@ namespace SPAssistantBot.Services
 
         public Microsoft.Graph.User GetUserFromEmail(string email)
         {
+            log.LogInformation($"User: {email}");
+
             var graphCLient = GetGraphServiceClient();
            
             Microsoft.Graph.User user = null;
@@ -123,10 +133,14 @@ namespace SPAssistantBot.Services
 
         private async Task<Site> GetGroupTeamSiteWithRetry(GraphServiceClient graphClient, string groupId,  int retryInterval = 3, int maxTries = 5)
         {
+            log.LogInformation("Getting group by groupId");
+
             Site site = null;
 
             int count = maxTries;
+            var ts = new TimeSpan(0, 0, retryInterval);
 
+            //Note rety logic necessary as the Group may not be available immediately after it has been newly setup.
             while(site == null && count > 0)
             {
                 try
@@ -136,9 +150,10 @@ namespace SPAssistantBot.Services
                 }
                 catch(Exception ex)
                 {
-                    if (count > 1)
+                    if (count > 1 && site == null)
                     {
-                        await Task.Delay(new TimeSpan(0,0,retryInterval));
+                        log.LogInformation($"Site not found. Trying again in {retryInterval}s. Attempts left {count}");
+                        await Task.Delay(ts);
                     }
                 }
                 count--;
@@ -150,6 +165,8 @@ namespace SPAssistantBot.Services
 
         private string[] GetUserList(string userEmailList)
         {
+            log.LogInformation($"Getting details for users {userEmailList}");
+
             var usersList = new List<string>();
 
             var userEmails = userEmailList.Split(new char[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
@@ -170,6 +187,8 @@ namespace SPAssistantBot.Services
 
         private string GetMailNickNameFromSiteTitle(string siteTitle)
         {
+            log.LogInformation("Getting nickname from site title");
+
             var regex = new Regex("[^a-zA-Z0-9]"); 
             var mailNickName = regex.Replace(siteTitle, "").Trim();
             return mailNickName;
@@ -177,7 +196,16 @@ namespace SPAssistantBot.Services
 
         private GraphServiceClient GetGraphServiceClient()
         {
-            return GraphClientHelper.GetGraphServiceClient(aadApplicationId, aadClientSecret, spTenant);
+            log.LogInformation("Getting authenticated graph service client");
+            try
+            {
+                return GraphClientHelper.GetGraphServiceClient(aadApplicationId, aadClientSecret, spTenant);
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Get graph service client exception: {ex.Message}");
+                throw;
+            }
             //IConfidentialClientApplication confidentialClientApplication = ConfidentialClientApplicationBuilder.Create(aadApplicationId)
             //                                                                                                                                                              .WithTenantId(spTenant)
             //                                                                                                                                                              .WithClientSecret(aadClientSecret)

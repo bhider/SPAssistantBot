@@ -23,7 +23,7 @@ namespace SPAssistantBot.Functions
             }
             catch(Exception ex)
             {
-                log.LogError(ex.Message);
+                log.LogError($"{nameof(DeleteTeamOrchestrator)} exception: {ex.Message}");
                 throw ex;
             }
 
@@ -43,11 +43,21 @@ namespace SPAssistantBot.Functions
         [FunctionName("A_DeleteTeams")]
         public async Task<string> DeleteTeams([ActivityTrigger]string input, ExecutionContext ec, ILogger log)
         {
-            var deletedTeams = string.Empty;
+            log.LogInformation($"Deleting teams: {input}");
 
-            deletedTeams = await _teamsService.DeleteTeamsAsync(input);
+            try
+            {
+                var deletedTeams = string.Empty;
 
-            return deletedTeams;
+                deletedTeams = await _teamsService.DeleteTeamsAsync(input);
+
+                return deletedTeams;
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"{nameof(DeleteTeamRequestProcessor)} exception: {ex.Message}");
+                throw;
+            }
         }
     }
 }

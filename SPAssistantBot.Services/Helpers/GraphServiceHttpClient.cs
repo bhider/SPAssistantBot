@@ -50,31 +50,49 @@ namespace SPAssistantBot.Services.Helpers
 
         private async Task<string> GetAccessToken( string applicationId, string applicationSecret, string tenant)
         {
-            IConfidentialClientApplication clientApp = ConfidentialClientApplicationBuilder.Create(applicationId).WithClientSecret(applicationSecret).WithTenantId(tenant).Build();
-            var authResult = await clientApp.AcquireTokenForClient(new string[] { "https://graph.microsoft.com/.default"}).ExecuteAsync();
-            var accessToken = authResult.AccessToken;
-            return accessToken;
+            try
+            {
+                IConfidentialClientApplication clientApp = ConfidentialClientApplicationBuilder.Create(applicationId).WithClientSecret(applicationSecret).WithTenantId(tenant).Build();
+                var authResult = await clientApp.AcquireTokenForClient(new string[] { "https://graph.microsoft.com/.default" }).ExecuteAsync();
+                var accessToken = authResult.AccessToken;
+                return accessToken;
+            }
+            catch (Exception ex)
+            {
+                Log.LogError($"Get Access token error: {ex.Message}");
+                throw;
+            }
         }
 
         public async Task<JObject> ExecuteGetAsync(string url)
         {
             JObject body = null;
 
-            Log.LogInformation($"Executing Get - Request Url : {url}");
+            Log.LogDebug($"Get request to {url}");
 
-            var response = await httpClient.GetAsync(url);
-
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var result = await response.Content.ReadAsStringAsync();
-                
-                if (!string.IsNullOrWhiteSpace(result)){
-                    body = JObject.Parse(result);
+                var response = await httpClient.GetAsync(url);
+
+                if (response.IsSuccessStatusCode)
+                {
+                    var result = await response.Content.ReadAsStringAsync();
+
+                    if (!string.IsNullOrWhiteSpace(result))
+                    {
+                        body = JObject.Parse(result);
+                    }
+                }
+                else
+                {
+                    Log.LogError($"Get request error: {response.ReasonPhrase}");
+                    throw new Exception(response.ReasonPhrase);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                throw new Exception(response.ReasonPhrase);
+                Log.LogError($"Get request exception: {ex.Message}");
+                throw;
             }
             
             return body;
@@ -84,20 +102,31 @@ namespace SPAssistantBot.Services.Helpers
         {
             JObject body = null;
 
-            var response = await httpClient.PostAsync(url, new StringContent(content.ToString(), Encoding.UTF8, "application/json"));
+            Log.LogDebug($"Post request to {url}");
 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var result = await response.Content.ReadAsStringAsync();
+                var response = await httpClient.PostAsync(url, new StringContent(content.ToString(), Encoding.UTF8, "application/json"));
 
-                if (!string.IsNullOrWhiteSpace(result))
+                if (response.IsSuccessStatusCode)
                 {
-                    body = JObject.Parse(result);
+                    var result = await response.Content.ReadAsStringAsync();
+
+                    if (!string.IsNullOrWhiteSpace(result))
+                    {
+                        body = JObject.Parse(result);
+                    }
+                }
+                else
+                {
+                    Log.LogError($"Post request error: {response.ReasonPhrase}");
+                    throw new Exception(response.ReasonPhrase);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                throw new Exception(response.ReasonPhrase);
+                Log.LogError($"Post request exception: {ex.Message}");
+                throw;
             }
 
             return body;
@@ -107,20 +136,31 @@ namespace SPAssistantBot.Services.Helpers
         {
             JObject body = null;
 
-            var response = await httpClient.PatchAsync(url, new StringContent(content.ToString(), Encoding.UTF8, "application/json"));
+            Log.LogDebug($"Patch request to {url}");
 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var result = await response.Content.ReadAsStringAsync();
+                var response = await httpClient.PatchAsync(url, new StringContent(content.ToString(), Encoding.UTF8, "application/json"));
 
-                if (!string.IsNullOrWhiteSpace(result))
+                if (response.IsSuccessStatusCode)
                 {
-                    body = JObject.Parse(result);
+                    var result = await response.Content.ReadAsStringAsync();
+
+                    if (!string.IsNullOrWhiteSpace(result))
+                    {
+                        body = JObject.Parse(result);
+                    }
+                }
+                else
+                {
+                    Log.LogError($"Patch request error: {response.ReasonPhrase}");
+                    throw new Exception(response.ReasonPhrase);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                throw new Exception(response.ReasonPhrase);
+                Log.LogError($"Patch request exception: {ex.Message}");
+                throw;
             }
 
             return body;
@@ -130,9 +170,19 @@ namespace SPAssistantBot.Services.Helpers
         {
             var response = await httpClient.DeleteAsync(url);
 
-            if (response.IsSuccessStatusCode && response.StatusCode == HttpStatusCode.NoContent)
+            Log.LogDebug($"Delete request to {url}");
+
+            try
             {
-                return true;
+                if (response.IsSuccessStatusCode && response.StatusCode == HttpStatusCode.NoContent)
+                {
+                    return true;
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.LogError($"Delete request exception: {ex.Message}");
+                throw;
             }
 
             return false;
@@ -142,36 +192,48 @@ namespace SPAssistantBot.Services.Helpers
         {
             JObject body = null;
 
-            var response = await httpClient.PostAsync(url, new StringContent(content.ToString(), Encoding.UTF8, "application/json"));
+            Log.LogDebug($"Post request to {url}");
+            Log.LogInformation("Executing Long Polling operation....");
 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                if (response.StatusCode == System.Net.HttpStatusCode.Accepted)
+                var response = await httpClient.PostAsync(url, new StringContent(content.ToString(), Encoding.UTF8, "application/json"));
+
+                if (response.IsSuccessStatusCode)
                 {
-                    var location = response.Headers.Location;
-                    var monitorUrl = $"https://graph.microsoft.com/v1.0{location}";
-                    var statusCode = HttpStatusCode.NotFound;
-                    HttpResponseMessage opResponse = null;
-
-                    while (statusCode != HttpStatusCode.OK)
+                    if (response.StatusCode == System.Net.HttpStatusCode.Accepted)
                     {
-                        opResponse = await httpClient.GetAsync(monitorUrl);
-                        statusCode = opResponse.StatusCode;
-                        
+                        var location = response.Headers.Location;
+                        var monitorUrl = $"https://graph.microsoft.com/v1.0{location}";
+                        var statusCode = HttpStatusCode.NotFound;
+                        HttpResponseMessage opResponse = null;
+
+                        while (statusCode != HttpStatusCode.OK)
+                        {
+                            opResponse = await httpClient.GetAsync(monitorUrl);
+                            statusCode = opResponse.StatusCode;
+
+                        }
+
+                        var result = await opResponse.Content.ReadAsStringAsync();
+
+                        if (!string.IsNullOrWhiteSpace(result))
+                        {
+                            body = JObject.Parse(result);
+                        }
                     }
 
-                    var result = await opResponse.Content.ReadAsStringAsync();
-
-                    if (!string.IsNullOrWhiteSpace(result))
-                    {
-                        body = JObject.Parse(result);
-                    }
                 }
-                
+                else
+                {
+                    Log.LogError($"Error executing long running operation: {response.ReasonPhrase}");
+                    throw new Exception(response.ReasonPhrase);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                throw new Exception(response.ReasonPhrase);
+                Log.LogError($"Long polling operation exception: {ex.Message}");
+                throw;
             }
 
             return body;
@@ -181,20 +243,31 @@ namespace SPAssistantBot.Services.Helpers
         {
             JObject body = null;
 
-            var response = await httpClient.PutAsync(url, new StringContent(content.ToString(), Encoding.UTF8, "application/json"));
+            Log.LogDebug($"Put request to {url}");
 
-            if (response.IsSuccessStatusCode)
+            try
             {
-                var result = await response.Content.ReadAsStringAsync();
+                var response = await httpClient.PutAsync(url, new StringContent(content.ToString(), Encoding.UTF8, "application/json"));
 
-                if (!string.IsNullOrWhiteSpace(result))
+                if (response.IsSuccessStatusCode)
                 {
-                    body = JObject.Parse(result);
+                    var result = await response.Content.ReadAsStringAsync();
+
+                    if (!string.IsNullOrWhiteSpace(result))
+                    {
+                        body = JObject.Parse(result);
+                    }
+                }
+                else
+                {
+                    Log.LogError($"Put request error: {response.ReasonPhrase}");
+                    throw new Exception(response.ReasonPhrase);
                 }
             }
-            else
+            catch (Exception ex)
             {
-                throw new Exception(response.ReasonPhrase);
+                Log.LogError($"Put request exception: {ex.Message}");
+                throw;
             }
 
             return body;

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.Online.SharePoint.TenantAdministration;
 using Microsoft.SharePoint.Client;
+using OfficeDevPnP.Core.Diagnostics;
 using OfficeDevPnP.Core.Framework.Provisioning.Connectors;
 using OfficeDevPnP.Core.Framework.Provisioning.Model;
 using OfficeDevPnP.Core.Framework.Provisioning.ObjectHandlers;
@@ -19,7 +20,8 @@ namespace SPAssistant.SPServices.Functions.Services
         bool Customize(string templateUrl, string targetUrl);
     }
 
-
+    //Note Uses SharePointPnPCoreOnline classes to export, import and apply templates to
+    //SP sites
     public class PnPSiteCustomisationService : ISPSiteCustomisationService
     {
         private readonly string _applicationId;
@@ -27,11 +29,11 @@ namespace SPAssistant.SPServices.Functions.Services
         private readonly X509Certificate2 _certificate509;
 
         
-        private readonly ILogger _log;
+        private readonly Microsoft.Extensions.Logging.ILogger _log;
 
         private List<CustomDocumentTemplate> _templateContent = new List<CustomDocumentTemplate>();
 
-        public PnPSiteCustomisationService(string tenantId, string applicationId, X509Certificate2 x509Certificate2, ILogger log)
+        public PnPSiteCustomisationService(string tenantId, string applicationId, X509Certificate2 x509Certificate2, Microsoft.Extensions.Logging.ILogger log)
         {
             _tenant = tenantId;
             _applicationId = applicationId;
@@ -58,6 +60,10 @@ namespace SPAssistant.SPServices.Functions.Services
                 {
                     _log.LogError(ex.Message);
                 }
+            }
+            else
+            {
+                _log.LogError($"Customise Site Validation failed:  Template Site {templateUrl}; Target Team: {targetUrl}");
             }
 
             return success;
@@ -190,11 +196,13 @@ namespace SPAssistant.SPServices.Functions.Services
 
         private ClientContext CreateContext(string targetUrl)
         {
-            return SPContextHelper.GetAuthenticatedAppOnlyContext(_tenant, _applicationId, _certificate509, targetUrl);
+            return SPContextHelper.GetAuthenticatedAppOnlyContext(_tenant, _applicationId, _certificate509, targetUrl, _log);
         }
 
         private void SetNoScriptSiteProp(string targetUrl)
         {
+            _log.LogInformation($"Disabling No Script for site {targetUrl}");
+
             var targetUrlComponents = targetUrl.Split(new string[] { ".sharepoint.com" }, StringSplitOptions.RemoveEmptyEntries);
 
             if (targetUrlComponents.Length > 0)
@@ -261,6 +269,8 @@ namespace SPAssistant.SPServices.Functions.Services
 
         private List<Microsoft.SharePoint.Client.List> GetAllDocumentLibraries(ClientContext context)
         {
+            _log.LogInformation("Getting all document libraries");
+
             var web = context.Web;
             context.Load(web.Lists);
             context.ExecuteQuery();
@@ -295,9 +305,11 @@ namespace SPAssistant.SPServices.Functions.Services
 
         private bool IsValidUrl(string targetUrl)
         {
+            _log.LogInformation($"Validating url {targetUrl}");
+
             try
             {
-                using (var context = SPContextHelper.GetAuthenticatedAppOnlyContext(_tenant, _applicationId, _certificate509, targetUrl))
+                using (var context = SPContextHelper.GetAuthenticatedAppOnlyContext(_tenant, _applicationId, _certificate509, targetUrl, _log))
                 {
                     var web = context.Web;
                     context.Load(web);
@@ -305,10 +317,9 @@ namespace SPAssistant.SPServices.Functions.Services
                     return !string.IsNullOrWhiteSpace(web.Title);
                 }
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-
-                
+                _log.LogError($"Exception occured when validating url {targetUrl} : {ex.Message}");
             }
 
             return false;

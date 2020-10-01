@@ -40,6 +40,8 @@ namespace SPAssistant.SPServices.Functions
         [FunctionName("A_CustomiseSPSite")]
         public static async Task<bool> CustomiseSPSite([ActivityTrigger]string input, ExecutionContext ec, ILogger log)
         {
+            log.LogInformation($"Beginning customisation of site.. ({input})");
+
             var success = false;
 
             var applicationId = Environment.GetEnvironmentVariable("AADClientId");
@@ -50,7 +52,7 @@ namespace SPAssistant.SPServices.Functions
 
             try
             {
-                using (var certificate509 = await KeyVaultService.GetCertificateAsync(keyVaultCertificateIdentifier))
+                using (var certificate509 = await KeyVaultService.GetCertificateAsync(keyVaultCertificateIdentifier, log))
                 {
                     var service = new PnPSiteCustomisationService(tenantId,  applicationId, certificate509, log);
                     success = service.Customize(createRequest.TemplateSiteUrl, createRequest.TargetSiteUrl);
@@ -58,9 +60,11 @@ namespace SPAssistant.SPServices.Functions
             }
             catch (Exception ex)
             {
-                log.LogError(ex.Message);
+                log.LogError($"Customise Site Request Processor Exception: {ex.Message}");
                 throw;
             }
+
+            log.LogInformation($"Completed customisation of site.");
             return success;
         }
     }

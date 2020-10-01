@@ -40,17 +40,24 @@ namespace SPAssistantBot.Functions
     {
         private readonly TeamsService _teamsService;
 
+        private readonly SPCustomisationService _spCustomisationService;
+
+        private ILogger _log;
+
         //Constructor injection is required, argument/property injection does not work. 
         //Hence the constuctor and hence the class and the method cannot be static.
-        public CreateTeamRequestProcessor(TeamsService teamsService)
+        public CreateTeamRequestProcessor(TeamsService teamsService, SPCustomisationService spCustomisationService)
         {
             _teamsService = teamsService;
+            _spCustomisationService = spCustomisationService;
         }
 
         [FunctionName("A_CreateTeam")]
         public  async Task<string> CreateTeam([ActivityTrigger]string input, ExecutionContext ec, ILogger log)//, TeamsService teamsService)
         {
-            var teamSiteUrl = string.Empty;
+            _log = log;
+
+            var newTeamId = string.Empty;
             var createTeamRequest = JsonConvert.DeserializeObject<CreateTeamRequest>(input);
 
             if (createTeamRequest != null)
@@ -59,11 +66,16 @@ namespace SPAssistantBot.Functions
                 {
                     if (createTeamRequest.UseTemplate)
                     {
-                        teamSiteUrl = await _teamsService.CloneTeam("92568ef0 - 8a32 - 4029 - a847 - c0c1add8103d", createTeamRequest.TeamName, createTeamRequest.Description);
+                        newTeamId = await _teamsService.CloneTeam("92568ef0-8a32-4029-a847-c0c1add8103d", createTeamRequest.TeamName, createTeamRequest.Description);
+                        
+                        if (!string.IsNullOrWhiteSpace(newTeamId))
+                        {
+                            var success = await CustomiseSharePointSiteFromTemplate("92568ef0-8a32-4029-a847-c0c1add8103d", newTeamId);
+                        }
                     }
                     else
                     {
-                        teamSiteUrl = await _teamsService.CreateTeam(createTeamRequest.TeamName, createTeamRequest.Description, createTeamRequest.OwnersUserEmailListAsString, createTeamRequest.MembersUserEmailListAsString);
+                        newTeamId = await _teamsService.CreateTeam(createTeamRequest.TeamName, createTeamRequest.Description, createTeamRequest.OwnersUserEmailListAsString, createTeamRequest.MembersUserEmailListAsString);
                     }
 
                     string responseMessage = createTeamRequest.TeamName;
@@ -76,7 +88,27 @@ namespace SPAssistantBot.Functions
                 }
             }
 
-            return teamSiteUrl;
+            return newTeamId;
         }
+
+        private async Task<bool> CustomiseSharePointSiteFromTemplate(string templateTeamId, string newTeamId)
+        {
+            _log.LogInformation("Applying template to associated SharePoint site for cloned team");
+            var success = false;
+
+            var templateSiteUrl = await _teamsService.GetGroupUrlFromTeamId(templateTeamId);
+            _log.LogInformation($"Template Site Url: {templateSiteUrl}");
+
+            var teamSiteUrl = await _teamsService.GetGroupUrlFromTeamId(newTeamId);
+            _log.LogInformation($"Team Site Url: {teamSiteUrl}");
+
+            if (!string.IsNullOrWhiteSpace(templateSiteUrl) && !string.IsNullOrWhiteSpace(teamSiteUrl))
+            {
+                success = await _spCustomisationService.CustomiseAsync(templateSiteUrl, teamSiteUrl);
+            }
+
+            return success;
+        }
+        
     }
 }

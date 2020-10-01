@@ -1,5 +1,6 @@
 ﻿using Microsoft.Azure.KeyVault;
 using Microsoft.Azure.Services.AppAuthentication;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,14 +20,28 @@ namespace SPAssistant.SPServices.Functions.Helper
             return new KeyVaultClient(new KeyVaultClient.AuthenticationCallback(azureServiceTokenProvider.KeyVaultTokenCallback));
         }
 
-        public static async Task<X509Certificate2> GetCertificateAsync(string certificateIdentifier)
+        //Note: While debugging locally make sure that the account that is used to sign to Visual Studio has been
+        //granted access to the KeyVault.
+        //When deployed, enable Managed Identity for the Function App and ensure that the Managed identity has been granted appropriate
+        //access to the KeyVault.
+
+        public static async Task<X509Certificate2> GetCertificateAsync(string certificateIdentifier, ILogger log)
         {
-            var client = GetKeyVaultClient();
+            log.LogInformation("Retrieving certificate...");
+            try
+            {
+                var client = GetKeyVaultClient();
 
-            var secret = await client.GetSecretAsync(certificateIdentifier);
-            var pfxBytes = Convert.FromBase64String(secret.Value);
+                var secret = await client.GetSecretAsync(certificateIdentifier);
+                var pfxBytes = Convert.FromBase64String(secret.Value);
 
-            return new X509Certificate2(pfxBytes);
+                return new X509Certificate2(pfxBytes);
+            }
+            catch (Exception ex)
+            {
+                log.LogError($"Retrieve certificate exception: {ex.Message}");
+                throw;
+            }
         }
     }
 }

@@ -10,6 +10,9 @@ using System.Threading.Tasks;
 
 namespace SPAssistant.SPServices.Functions.Helper
 {
+    //Note: This is required to resolve some of the dependency issues - certain dlls depend on a specific version of a dependent dll being
+    //available. This sets up assembly redirection so that the references are correctly resolved - currently required for Newtonsoft.Json and
+    //Microsoft.IdentityModel.ActiveDirectory.Client
 
     public static class AssemblyBindingRedirectHelper
     {

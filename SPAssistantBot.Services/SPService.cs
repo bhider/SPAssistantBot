@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Identity.Client;
 using Microsoft.SharePoint.Client;
+using System;
 using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
@@ -32,17 +33,34 @@ namespace SPAssistantBot.Services
         public async Task<string> CreateSite(string siteTitle, string description, string templateSiteUrl, string owners, string members)
         {
             var teamSiteUrl = string.Empty;
-            
-            using (var certificate509 = await KVService.GetCertificateAsync())
-            {
-                var repo = new CsomSPRepository(AADApplicationId, AADApplicationSecret, SPTenant, certificate509, Log);
-                var groupId  = repo.CreateSite(siteTitle, description,  owners, members);
 
-                teamSiteUrl = repo.GetSiteUrlFromGroupId(groupId);
-                if (!string.IsNullOrWhiteSpace(templateSiteUrl))
+            try
+            {
+                using (var certificate509 = await KVService.GetCertificateAsync(Log))
                 {
-                    var success = await _spCustomisationService.CustomiseAsync(templateSiteUrl, teamSiteUrl);
+                    var repo = new CsomSPRepository(AADApplicationId, AADApplicationSecret, SPTenant, certificate509, Log);
+                    var groupId = repo.CreateSite(siteTitle, description, owners, members);
+
+                    teamSiteUrl = await repo.GetSiteUrlFromGroupId(groupId);
+
+                    if (!string.IsNullOrWhiteSpace(templateSiteUrl))
+                    {
+                        if (!string.IsNullOrWhiteSpace(teamSiteUrl))
+                        {
+                            var success = await _spCustomisationService.CustomiseAsync(templateSiteUrl, teamSiteUrl);
+                        }
+                        else
+                        {
+                            Log.LogWarning($"Target team Url could not be determined. Target team '{siteTitle}' will not be customised");
+                        }
+                    }
+
                 }
+            }
+            catch (Exception ex)
+            {
+                Log.LogError($"Create Site exception: {ex.Message}");
+                throw;
             }
 
             return teamSiteUrl;

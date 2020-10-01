@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.IO;
@@ -12,12 +13,20 @@ namespace SPAssistantBot.Services
 {
     public class SPCustomisationService
     {
+        private readonly ILogger _log;
 
+        public SPCustomisationService(ILogger<SPCustomisationService> log)
+        {
+            _log = log;
+        }
         public  async Task<bool> CustomiseAsync(string templateSiteUrl, string targetSiteUrl)
         {
+            _log.LogInformation("Calling function to customise site");
+
             var success = false;
 
             var customisationServiceUrl = Environment.GetEnvironmentVariable("CustomisationServiceUrl");
+            _log.LogDebug($"Customisation Function Url: {customisationServiceUrl}");
 
             var customiseSiteFromTemplateInfo = new { TemplateSiteUrl = templateSiteUrl, TargetSiteUrl = targetSiteUrl};
 
@@ -52,6 +61,7 @@ namespace SPAssistantBot.Services
                     }
                     if ((isComplete) && (status == "Completed"))
                     {
+                        _log.LogInformation("Customisation function completed successfully...");
                         success = result.Value<bool>("output");
                     }
                     

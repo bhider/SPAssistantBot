@@ -35,17 +35,7 @@ namespace SPAssistantBot.Functions
             var instanceId = await starter.StartNewAsync<string>("O_DeleteTeams", teamsList);
 
             return starter.CreateCheckStatusResponse(req, instanceId);//;WaitForCompletionOrCreateCheckStatusResponseAsync(req, instanceId);
-            //var deletedTeams = await _teamsService.DeleteTeamsAsync(teamsList);
-
-            ////string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-            ////dynamic data = JsonConvert.DeserializeObject(requestBody);
-            ////name = name ?? data?.name;
-
-            //string responseMessage = !string.IsNullOrEmpty(deletedTeams)
-            //    ? $"The following teams were deleted successfully: {deletedTeams}"
-            //    : $"No teams were deleted successfully";
-
-            //return new OkObjectResult(responseMessage);
+            
         }
     }
 }
